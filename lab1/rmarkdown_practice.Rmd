@@ -1,0 +1,37 @@
+---
+title: "RMarkdown Practice"
+author: "Amanda Duong"
+date: "2024-01-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Title
+### Title
+#### Title
+
+Title
+
+[BIS 15L Webpage](https://jmledford3115.github.io/datascibiol/)
+[Joel Ledford](jmledford@ucdavis.edu)
+
+```{r}
+4*2
+```
+```{r}
+(2*4)+8
+```
+
+
+```{r}
+#install.packages("tidyverse")
+library("tidyverse")
+```
+
+```{r}
+ggplot(mtcars, aes(x = factor(cyl))) +
+    geom_bar()
+```
