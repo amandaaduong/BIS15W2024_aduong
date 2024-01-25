@@ -106,5 +106,39 @@ max(carnivores$mean.hra.m2, na.rm = T)
 ```
 Carnivores on average have a larger 'mean.hra.m2.  
 
+**9. Make a new dataframe `owls` that is limited to the mean mass, log10 mass, family, genus, and species of owls in the database. Which is the smallest owl? What is its common name? Do a little bit of searching online to see what you can learn about this species and provide a link below**
+```{r}
+owls <- filter(homerange, order == "strigiformes")
+owls1 <- select(owls, "mean.mass.g", "log10.mass", "family", "genus", "species")
+owls
+```
+
+```{r}
+min(owls$mean.mass.g) # find minimum value of mass
+```
+
+```{r}
+filter(homerange, mean.mass.g == "61.32") # filter for minimum value
+```
+The smallest owl is the Eurasian pygmy owl with a mean mass of 61.32 grams. https://en.wikipedia.org/wiki/Eurasian_pygmy_owl. 
+
+**10. As measured by the data, which bird species has the largest homerange? Show all of your work, please. Look this species up online and tell me about it!**.  
+```{r}
+names(homerange)
+birds <- filter(homerange, taxon =="birds")
+birds
+```
+```{r}
+birds2 <- select(birds, "common.name", "genus", "species", "mean.hra.m2", "log10.hra")
+```
+
+```{r}
+max(birds2$mean.hra.m2) # find max mean.hra value in birds
+```
+```{r}
+filter(birds, mean.hra.m2 == 2.41e+08)
+```
+Bird species with the largest mean.hra value is cheriway (common name caracara).
+https://www.allaboutbirds.org/guide/Crested_Caracara/overview. 
 ## Push your final code to GitHub!
 Please be sure that you check the `keep md` file in the knit preferences.   
