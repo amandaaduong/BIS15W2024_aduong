@@ -1,0 +1,301 @@
+---
+title: "Midterm 1 Functions"
+output: html_notebook
+---
+## Load the libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(janitor)
+library(skimr)
+```
+
+# How to load data
+```{r}
+x <- read.csv("data/*datafile.csv*") 
+# example
+hot_springs <- read_csv("hsprings_data.csv")
+```
+
+# Find names of columns in data
+```{r}
+names(x)
+```
+
+# Find dimensions of data (# of columns and rows)
+```{r}
+dim(x)
+```
+
+# Get idea of data structure
+```{r}
+str(x) -> shows classes of variables (e.g. chr, num)
+glimpse(x)
+```
+
+# Change column to a factor and show levels
+```{r}
+class(x$column_name)
+x$column_name <- as.factor(x$column_name)
+levels(x$column_name)
+# example
+class(hot_springs$scientist)
+hot_springs$scientist <- as.factor(hot_springs$scientist)
+levels(hot_springs$scientist)
+```
+
+# Summarize data (statistical summary)
+```{r}
+summary(x)
+```
+
+# `head()` prints the first n rows of the data frame.
+# `tail()` prinst the last n rows of the data frame.
+# Make a table
+```{r}
+table()
+ # table with specific column
+table(x$column)
+```
+
+# Filter out variable
+```{r}
+new_x <- filter(x, column = "")
+```
+
+# Mean and Max
+```{r}
+mean(x$column)
+max(x$column)
+```
+
+# Pull columns from a data frame (select specific columns you want in a new data frame)
+```{r}
+select(x, "", "")
+# To add a range of columns use `start_col:end_col`
+select(fish, fish_id:length)
+# The - operator is useful in select. It allows us to select everything except the specified variables.
+select(fish, -fish_id, -annnumber, -length, -radii_length_mm)
+#When columns are sequentially named, `starts_with()` makes selecting columns easier.
+select(fish, starts_with("radii"))
+# Options to select columns based on a specific criteria include:  
+1. ends_with() = Select columns that end with a character string  
+2. contains() = Select columns that contain a character string  
+3. matches() = Select columns that match a regular expression  
+4. one_of() = Select columns names that are from a group of names  
+```
+
+# Check for NAs
+```{r}
+anyNA(x)
+```
+
+# Use filter for many observations
+```{r}
+# Filtering multiple values within the same variable requires the `%in%` [operator](https://www.tutorialspoint.com/r/r_operators.htm).    
+```{r}
+filter(fish, length %in% c(167, 175))
+
+# Alternatively, you can use `between` if you are looking for a range of specific values.  
+filter(fish, between(scalelength, 2.5, 2.55))
+
+# You can also extract observations "near" a certain value but you need to specify a tolerance.  
+filter(fish, near(radii_length_mm, 2, tol = 0.2))
+
+#Rules:  
++ `filter(condition1, condition2)` will return rows where both conditions are met.  
++ `filter(condition1, !condition2)` will return all rows where condition one is true but condition 2 is not.  
++ `filter(condition1 | condition2)` will return rows where condition 1 or condition 2 is met.  
++ `filter(xor(condition1, condition2)` will return all rows where only one of the conditions is met, and not when both conditions are met. 
+
+# examples
+filter(fish, lakeid == "AL" & length > 350) # extract only the fish that have lakeid "AL" and length >350
+```
+
+# Rename variables using janitor
+```{r}
+library(janitor)
+x <- clean_names(x)
+```
+
+# Using pipes
+```{r}
+x %>%
+  select(columns) %>%
+  filter(column = "")
+# example
+fish %>%
+  select(lakeid, scalelength, gestation) %>%
+  filter(lakeid == "AL")
+  filter(gestation>=15)
+  
+# another example
+fish %>% # work with fish
+  select(lakeid, radii_length_mm) %>% # pull out variables of interest
+  filter(lakeid == "AL" | lakeid == "AR") # only these lakes
+  filter(between(radii_length_mm, 2, 4)) # only these radii lengths between 2 and 4
+  arrange(desc(radii_length_mm)) # sort in descending order
+```
+
+# Using mutate() in a pipe
+```{r}
+x %>%
+  mutate(x_new = x*blah) %>%
+  select (column, column, x_new)
+# example
+fish %>% 
+  mutate(length_mm = length*10) %>% 
+  select(fish_id, length, length_mm)
+
+# Here is an example that changes all entries to lowercase (if present).  
+mammals %>%
+  mutate_all(tolower)
+
+# Using the across function we can specify individual columns.
+mammals %>% 
+  mutate(across(c("order", "family"), tolower))
+
+# Have a look at the data from mammals below. Notice that the values for newborn include `-999.00`. This is sometimes used as a placeholder for NA (but, is a really bad idea). We can use `if_else()` to replace `-999.00` with `NA`.
+mammals %>% 
+  select(genus, species, newborn) %>%
+  mutate(newborn_new = ifelse(newborn == -999.00, NA, newborn))%>% 
+  arrange(newborn)
+```
+
+# tabyl function
+```{r}
+tabyl(superhero_info, alignment) # like table() but produces percentages with counts
+# example
+# 1. Who are the publishers of the superheros? Show the proportion of superheros from each publisher. Which publisher has the highest number of superheros?  
+```{r}
+superhero_info %>%
+  tabyl(publisher)
+```
+
+# Stats Functions
+```{r}
+hist(x$column) # make a histogram
+mean(x$column) # find mean
+sum(x$column) # sum 
+max(column)
+min(column)
+```
+
+# Combine functions in a summarize()
+```{r}
+# example
+msleep %>%
+  filter(bodywt>200) %>%
+  summarize(mean_sleep_lg=mean(sleep_total),
+            min_sleep_lg=min(sleep_total),
+            max_sleep_lg=max(sleep_total),
+            sd_sleep_lg=sd(sleep_total),
+            total=n())
+
+# example
+msleep %>%
+  filter(order == "Primates") %>%
+  summarize(mean_body=mean(bodywt),
+            min_body=min(bodywt),
+            max_body=max(bodywt),
+            total=n())
+
+# n_distinct() presents number of distinct observations
+msleep %>%
+  summarize(n_genera=n_distinct(genus)) # this is going to count the number of genera in msleep
+
+# group_by() - What if we were interested in body weight by feeding ecology?
+msleep %>%
+  group_by(vore) %>% #we are grouping by feeding ecology, a categorical variable
+  summarize(min_bodywt = min(bodywt),
+            max_bodywt = max(bodywt),
+            mean_bodywt = mean(bodywt),
+            total=n())
+
+# pull out NAs
+penguins %>%
+  filter(!is.na(body_mass_g)) %>% # pull out NAs
+  group_by(island) %>%
+  summarize(mean_body_mass=mean(body_mass_g),
+            n=n())
+
+# example - What if we are interested in the number of observations (penguins) by species and island?
+penguins %>% 
+  group_by(species, island) %>% 
+  summarize(n=n(), .groups= 'keep')#the .groups argument here just prevents a warning message
+
+# count() 
+penguins %>% 
+  count(island, sort = T) #sort=T sorts the column in descending order
+
+# example 
+1. How does the mean of `bill_length_mm` compare between penguin species?
+penguins %>%
+  filter(!is.na(bill_length_mm)) %>% # pull out NAs
+  group_by(species) %>%
+  summarize(mean_bill_length=mean(bill_length_mm),
+            n=n())
+
+# example
+
+Operators can also work, here I am summarizing across all variables except `species`, `island`, `sex`, and `year`.
+penguins %>%
+  summarise(across(!c(species, island, sex, year), 
+                   mean, na.rm=T))
+```
+
+# Important hw: lab6_2.rmd, lab7_hw.rmd
+
+# Example warmup
+2. What are the dimensions and structure of the data?
+```{r}
+dim(bison)
+str(bison)
+```
+
+3. We are only interested in code, sex, weight, year of birth. Restrict the data to these variables and store the dataframe as a new object.
+```{r}
+names(bison)
+animal <- select(bison, "animal_code", "animal_sex", "animal_weight", "animal_yob")
+animal
+```
+```{r}
+bison1 <- bison %>%
+  select(animal_code, animal_sex, animal_weight, animal_yob)
+```
+
+4. Pull out the animals born between 1980-1990.
+```{r}
+bison2 <- bison1 %>% 
+  select(animal_code, animal_sex, animal_weight, animal_yob) %>% 
+  filter(between(animal_yob, 1980, 1990))
+bison2
+```
+
+5. How many male and female bison are represented between 1980-1990?
+
+```{r}
+bison2 <- bison1 %>% 
+  select(animal_code, animal_sex, animal_weight, animal_yob) %>% 
+  filter(between(animal_yob, 1980, 1990))
+  table(bison2$animal_sex)
+```
+```{r}
+males <- bison2 %>%
+  filter(animal_yob>=1980 & animal_yob <= 1990) %>%
+  filter(animal_sex=="M")
+males
+```
+```{r}
+females <- bison2 %>%
+  filter(animal_yob>=1980 & animal_yob <= 1990) %>%
+  filter(animal_sex=="F")
+females
+```
+
+6. Between 1980-1990, were males or females larger on average?
+```{r}
+mean(females$animal_weight)
+mean(males$animal_weight)
+```
+Males are larger on average between 1980-1990.
+
