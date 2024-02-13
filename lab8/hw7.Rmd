@@ -62,21 +62,21 @@ anyNA(amphibio)
 amniota %>% 
   map_df(~ sum(is.na(.)))
 ```
+
 ```{r}
 amphibio %>% 
   map_df(~ sum(is.na(.)))
 ```
-
+The NAs in the amniota set are represented by the value -999 instead of NA. The NAs in the amphibio set are represented by NA. 
 **5. Make any necessary replacements in the data such that all NA's appear as "NA".**   
 ```{r}
-amphibio %>% 
-  replace_with_na(replace=list(x=-999))
+amniota_new <- amniota %>% 
+  replace_with_na_all(condition = ~.x == -999)
 ```
 
 **6. Use the package `naniar` to produce a summary, including percentages, of missing data in each column for the `amniota` data.**  
 ```{r}
-install.packages("naniar")
-naniar::miss_var_summary(amniota)
+naniar::miss_var_summary(amniota_new)
 ```
 
 **7. Use the package `naniar` to produce a summary, including percentages, of missing data in each column for the `amphibio` data.**
@@ -86,24 +86,29 @@ naniar::miss_var_summary(amphibio)
 
 **8. For the `amniota` data, calculate the number of NAs in the `egg_mass_g` column sorted by taxonomic class; i.e. how many NA's are present in the `egg_mass_g` column in birds, mammals, and reptiles? Does this results make sense biologically? How do these results affect your interpretation of NA's?**  
 ```{r}
-names(amniota)
-anyNA(amniota$egg_mass_g)
-```
-```{r}
-amniota_egg_mass <- amniota %>%
-  select(class, egg_mass_g) %>%
+amniota_egg_mass <- amniota_new %>%
   group_by(class) %>%
+  select(class, egg_mass_g) %>%
   summarize_all(~(sum(is.na(.))))
 ```
+NAs in mammalia makes sense since mammals don't usually lay eggs (with the exception of the platypus and echidna). NAs in aves or reptilia could mean it is hard to measure the mass of their eggs (i.e. hard to actually weigh them, difficult to obtain, etc.). These results affect my interpretation because NA could mean non-applicable. 
 
 **9. The `amphibio` data have variables that classify species as fossorial (burrowing), terrestrial, aquatic, or arboreal.Calculate the number of NA's in each of these variables. Do you think that the authors intend us to think that there are NA's in these columns or could they represent something else? Explain.**
 ```{r}
-
+amphibio_new <- clean_names(amphibio)
 ```
+
+```{r}
+amphibio_species_class <- amphibio_new %>%
+  select(fos, ter, aqu, arb) %>%
+  summarize_all(~(sum(is.na(.))))
+```
+I think the NAs would be for species that overlap in classification (for example, they could be fossorial and terrestrial). The authors could have also included NAs if there was no data available. 
 
 **10. Now that we know how NA's are represented in the `amniota` data, how would you load the data such that the values which represent NA's are automatically converted?**
 ```{r}
-
+amniota_na <- read_csv("data/amniota.csv") %>%
+  replace_with_na_all(condition = ~.x == -999)
 ```
 
 ## Push your final code to GitHub!
