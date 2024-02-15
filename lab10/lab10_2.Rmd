@@ -52,8 +52,17 @@ penguins %>%
 
 ## Practice
 1. What if we wanted a plot that showed the number of measured penguins for each species?
+```{r}
+pengunis %>%
+```
 
 2. How about average bill length by sex?
+```{r}
+penguins %>%
+  filter(sex!="NA") %>%
+  group_by(sex) %>%
+  summarize(ave_bill_length = mean(bill_length_mm))
+```
 
 ## Box Plots
 For the next series of examples, we will use the `homerange` data.  **Database of vertebrate home range sizes.**   
