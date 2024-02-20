@@ -1,6 +1,6 @@
 ---
 title: "dplyr Superhero"
-date: "`r Sys.Date()`"
+date: "2024-02-20"
 output:
   html_document: 
     theme: spacelab
@@ -18,16 +18,47 @@ output:
 For the second part of lab today, we are going to spend time practicing the dplyr functions we have learned and add a few new ones. This lab doubles as your homework. Please complete the lab and push your final code to GitHub.  
 
 ## Load the libraries
-```{r}
+
+```r
 library("tidyverse")
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.2.3
+```
+
+```
+## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.4     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+## ✔ purrr     1.0.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+```r
 library("janitor")
+```
+
+```
+## 
+## Attaching package: 'janitor'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     chisq.test, fisher.test
 ```
 
 ## Load the superhero data
 These are data taken from comic books and assembled by fans. The include a good mix of categorical and continuous data.  Data taken from: https://www.kaggle.com/claudiodavi/superhero-set  
 
 Check out the way I am loading these data. If I know there are NAs, I can take care of them at the beginning. But, we should do this very cautiously. At times it is better to keep the original columns and data intact.  
-```{r}
+
+```r
 #superhero_info <- read_csv("data/heroes_information.csv", na = c("", "-99", "-"))
 #superhero_powers <- read_csv("data/super_hero_powers.csv", na = c("", "-99", "-"))
 ```
@@ -37,7 +68,8 @@ Check out the way I am loading these data. If I know there are NAs, I can take c
 
 ## `tabyl`
 The `janitor` package has many awesome functions that we will explore. Here is its version of `table` which not only produces counts but also percentages. Very handy! Let's use it to explore the proportion of good guys and bad guys in the `superhero_info` data.  
-```{r}
+
+```r
 #tabyl(superhero_info, alignment)
 ```
 
