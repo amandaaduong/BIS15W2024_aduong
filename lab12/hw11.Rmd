@@ -59,10 +59,11 @@ anyNA(gapminder)
 
 **2. Among the interesting variables in gapminder is life expectancy. How has global life expectancy changed between 1952 and 2007?**
 ```{r}
-gapminder %>%
-  filter(between(year, 1952, 2007)) %>%
-  ggplot(aes(year, lifeExp, group=year)) + 
-  geom_col()+
+gapminder %>% 
+  group_by(year) %>% 
+  summarize(mean=mean(lifeExp)) %>% 
+  ggplot(aes(x=year, y=mean))+
+  geom_line()+
   labs(title="Global Life Expectancy (1952-2007)",
        x="Year",
        y="Life Expectancy")
@@ -71,13 +72,14 @@ Global life expectancy has gradually increased throughout the years.
 
 **3. How do the distributions of life expectancy compare for the years 1952 and 2007?**
 ```{r}
-gapminder %>%
-  filter(year == 1952 | year == 2007) %>% # modify above code chunk for years 1952 and 2007
-  ggplot(aes(year, lifeExp)) + 
-  geom_col()+
-  labs(title="Global Life Expectancy (1952 & 2007)",
-       x="Year",
-       y="Life Expectancy")
+gapminder %>% 
+  filter(year==1952 | year==2007) %>% 
+  mutate(year=as.factor(year)) %>% 
+  ggplot(aes(x=lifeExp, group=year, fill=year))+
+  geom_density(alpha=0.5)+
+  labs(title="Global Life Expectancy for 1952 and 2007",
+       x="Life Expectancy",
+       y="Year")
 ```
 
 **4. Your answer above doesn't tell the whole story since life expectancy varies by region. Make a summary that shows the min, mean, and max life expectancy by continent for all years represented in the data.**
@@ -91,6 +93,13 @@ gapminder %>%
        x="Continent",
        y="Life Expectancy")
   
+```
+```{r}
+gapminder %>% 
+  group_by(continent, year) %>% 
+  summarize(min=min(lifeExp),
+            mean=mean(lifeExp),
+            max=max(lifeExp))
 ```
 
 **5. How has life expectancy changed between 1952-2007 for each continent?**
@@ -107,9 +116,10 @@ Life expectancy for every continent has increased throughout the years.
 **6. We are interested in the relationship between per capita GDP and life expectancy; i.e. does having more money help you live longer?**
 ```{r}
 gapminder %>%
-  ggplot(aes(gdpPercap, lifeExp, color=continent))+
+  ggplot(aes(gdpPercap, lifeExp))+
   geom_point()+
-  coord_flip()+
+  scale_x_log10()+
+  geom_smooth(method=lm, se=F)+
   labs(title="Relationship between per capita GDP and life expectancy",
        x="per capita GDP",
        y="Life Expectancy")
@@ -125,6 +135,17 @@ gapminder %>%
   mutate(diff = max_pop - min_pop) %>% 
   arrange(desc(diff))
 ```
+```{r}
+gapminder %>% 
+  select(country, year, pop) %>% 
+  filter(year==1952 | year==2007) %>% 
+  pivot_wider(names_from = year,
+              names_prefix = "yr_",
+              values_from = pop) %>% 
+  mutate(delta= yr_2007-yr_1952) %>% 
+  arrange(desc(delta))
+```
+
 The top 5 countries since 1952 are China, India, US, Indonesia, and Brazil.  
 
 **8. Use your results from the question above to plot population growth for the top five countries since 1952.**
