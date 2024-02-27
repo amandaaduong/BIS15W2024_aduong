@@ -1,0 +1,136 @@
+---
+title: "midterm 2 cheat sheet"
+output: html_document
+date: "2024-02-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What if we are interested in the number of observations (penguins) by species and island?
+```{r}
+penguins %>% 
+  group_by(island, species) %>% 
+  summarize(n_penguins=n(), .groups = 'keep')
+```
+
+## `count()` works like a combination of `group_by()` and `summarize()` but just shows the number of observations.
+```{r}
+penguins %>% 
+  count(island, species)
+```
+
+## `tabyl()` will also produce counts, but the output is different. It is just a matter of personal preference.
+```{r}
+penguins %>% 
+  tabyl(island, species)
+```
+
+## What if we wanted to use `summarize()` to produce distinct counts over multiple variables; i.e. species, island, and sex? Although this isn't a lot of coding you can image that with a lot of variables it would be cumbersome.
+```{r}
+penguins %>%
+  summarize(distinct_species = n_distinct(species),
+            distinct_island = n_distinct(island),
+            distinct_sex = n_distinct(sex))
+```
+
+## By using `across()` we can reduce the clutter and make things cleaner. 
+```{r}
+penguins %>%
+  summarize(across(c(species, island, sex), n_distinct))
+### Operators can also work, here I am summarizing `n_distinct()` across all variables except `species`, `island`, and `sex`.
+penguins %>%
+  summarize(across(!c(species, island, sex, year), 
+                   mean, na.rm=T))
+### All variables that include "bill"...all of the other dplyr operators also work.
+penguins %>%
+  summarise(across(starts_with("bill"), n_distinct))
+### 1. Produce separate summaries of the mean and standard deviation for bill_length_mm, bill_depth_mm, and flipper_length_mm for each penguin species. Be sure to provide the number of samples.  
+penguins %>%
+  group_by(species) %>%
+  summarize(across(c(contains("mm"), body_mass_g), mean, na.rm=T),
+            n_samples=n())
+```
+
+# Find NAs
+```{r}
+life_history %>% 
+  map_df(~ sum(is.na(.)))
+
+# also library("naniar")
+# `miss_var_summary` provides a clean summary of NA's across the data frame.
+naniar::miss_var_summary(life_history)
+```
+
+## `naniar` also has a nice replace function which will allow you to precisely control which values you want replaced with NA's in each variable.
+```{r}
+life_history %>% 
+  replace_with_na(replace = list(newborn = "not measured", 
+                                 weaning= -999, 
+                                 wean_mass= -999, 
+                                 afr= -999, 
+                                 max_life= 0, 
+                                 litter_size= -999, 
+                                 gestation= -999, 
+                                 mass= -999)) %>% 
+miss_var_summary()
+```
+
+## **8. For the `amniota` data, calculate the number of NAs in the `egg_mass_g` column sorted by taxonomic class; i.e. how many NA's are present in the `egg_mass_g` column in birds, mammals, and reptiles? Does this results make sense biologically? How do these results affect your interpretation of NA's?**  
+```{r}
+amniota_egg_mass <- amniota_new %>%
+  group_by(class) %>%
+  select(class, egg_mass_g) %>%
+  summarize_all(~(sum(is.na(.))))
+```
+
+## IS DATA TIDY? LAB 9_1
+Most "wild" data are organized incorrectly for work in R and, as you might expect, the tools used to transform data are a core part of the tidyverse. I will attempt to summarize the most important points below, but you should read [chapter 12 of the data science text](https://r4ds.had.co.nz/tidy-data.html) for a more thorough explanation.  
+
+`Tidy` data follows three conventions:   
+(1) each variable has its own column  
+(2) each observation has its own row  
+(3) each value has its own cell  
+
+Rules:  
++ `pivot_longer`(cols, names_to, values_to)
++ `cols` - Columns to pivot to longer format
++ `names_to` - Name of the new column; it will contain the column names of gathered columns as values
++ `values_to` - Name of the new column; it will contain the data stored in the values of gathered columns
+
+## To fix this problem, we need to reshape the table to long format while keeping track of column names and values. We do this using `pivot_longer()`. Notice that the dimensions of the data frame change.  
+```{r}
+heartrate %>% 
+  pivot_longer(-patient, #patient will not move
+               names_to = "drug", #make a new column called "drug"
+               values_to="heartrate" #values moved to a new column called "heartrate"
+               )
+```
+
+## We need to start by separating the patient names from their sexes. `separate()` needs to know which column you want to split, the names of the new columns, and what to look for in terms of breaks in the data.
+```{r}
+heartrate2 %>% 
+  separate(patient, into= c("patient", "sex"), sep = "_")
+```
+
+## `pivot_wider()`
+The opposite of `pivot_longer()`. You use `pivot_wider()` when you have an observation scattered across multiple rows. In the example below, `cases` and `population` represent variable names not observations.  
+
+Rules:  
++ `pivot_wider`(names_from, values_from)  
++ `names_from` - Values in the `names_from` column will become new column names  
++ `values_from` - Cell values will be taken from the `values_from` column  
+
+```{r}
+tb_data <- read_csv("data/tb_data.csv")
+tb_data
+```
+
+When using `pivot_wider()` we use `names_from` to identify the variables (new column names) and `values_from` to identify the values associated with the new columns.
+```{r}
+tb_data %>% 
+  pivot_wider(names_from = "key", #the observations under key will become new columns
+              values_from = "value") #the values under value will be moved to the new columns
+```
+
