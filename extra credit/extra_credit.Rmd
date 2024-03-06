@@ -76,32 +76,36 @@ global_sharks %>%
 ```{r}
 global_sharks %>% 
   separate(date, into= c("year", "month", "day"), sep = "-") %>%
+  count(month) %>%
   filter(month != "NA") %>%
-  group_by(month) %>%
-  summarise(total=n(), .groups='keep') %>% 
-  ggplot(aes(x=as_factor(month), y=total))+
+  ggplot(aes(x=as_factor(month), y=n, fill = month))+
   geom_col(fill = "#0099f9", alpha=0.8)+
   labs(title="Number of Shark Incidents by Month", 
        x="Month", 
        y="n")+
   theme(plot.title = element_text(size = 14, face="bold"))
 ```
-
+January (1st month) has the highest number of incidents. 
 
 4. (3 points) Which activity is associated with the highest number of incidents? Make a plot that compares the top 5 riskiest activities. "NA" should not be classified as an activity.
 ```{r}
 global_sharks %>%
   filter(activity != "NA") %>%
+  group_by(activity) %>%
   count(activity) %>%
-  arrange(desc(n))
+  arrange(desc(n)) %>%
+  head(n=5)
 ```
 ```{r}
-global_sharks %>% 
+global_sharks %>%
   filter(activity != "NA") %>%
-  ggplot(aes(x=injury, fill=injury))+
-  geom_bar(alpha=0.8, position="dodge")+
-  facet_wrap(~activity)+
-  labs(title="Injury Type by Activity", 
+  group_by(activity) %>%
+  count(activity) %>%
+  arrange(desc(n)) %>%
+  head(n=5) %>%
+  ggplot(aes(x=activity, y=n, fill=activity))+
+  geom_col(alpha=0.8, position="dodge")+
+  labs(title="Incidents by Activity", 
        x=NULL, 
        y="Number of Incidents")+
   theme(strip.text = element_text(size=10),
@@ -113,21 +117,107 @@ Surfing is associated with the highest number of incidents.
 ```{r}
 global_sharks %>%
   filter(sex != "NA") %>%
+  filter(sex=="M" | sex=="F") %>%
+  filter(fatal_y_n == "Y") %>%
   group_by(sex) %>%
-  count(sex)
+  count(sex) %>%
+  ggplot(aes(x=sex, y=n, fill=sex))+
+  geom_col(alpha=0.8)+
+  labs(title="Number of Fatalities by Sex",
+       x=NULL,
+       y="Number of Incidents")
+```
+Males are more likely to be killed. 
+
+6. (3 points) Make a plot that shows the range of age for the individuals that are attacked. Make sure to restrict sex to M or F (some of the codes used are not clear). You will also need to find a way to manage the messy age column.
+```{r}
+global_sharks %>%
+  filter(sex=="M" | sex=="F") %>%
+  mutate(age=as.integer(age)) %>%
+  filter(age !="NA") %>%
+  ggplot(aes(x=sex, y=age, fill=sex))+
+  geom_boxplot(alpha=0.8, color="pink")+
+  labs(title="Range of Age for Individuals Attacked by Sex",
+       x="Age")
 ```
 
 
-6. (3 points) Make a plot that shows the range of age for the individuals that are attacked. Make sure to restrict sex to M or F (some of the codes used are not clear). You will also need to find a way to manage the messy age column.
-
-
 7. (3 points) In the United States, what are the top 5 states where shark attacks have been recorded since 1950? Make a plot that compares the number of incidents for these 5 states.
+```{r}
+global_sharks %>%
+  filter(year>=1950) %>%
+  mutate(year=as.factor(year)) %>%
+  filter(country=="USA") %>%
+  group_by(area)%>%
+  count(area)%>%
+  arrange(desc(n)) %>%
+  head(n=5)
+```
+```{r}
+global_sharks %>%
+  filter(year>=1950) %>%
+  mutate(year=as.factor(year)) %>%
+  filter(country=="USA") %>%
+  group_by(area)%>%
+  count(area)%>%
+  arrange(desc(n)) %>%
+  head(n=5) %>%
+  ggplot(aes(x=area, y=n, fill=area))+
+  geom_col(alpha=0.8)+
+  labs(title="Top 5 states where shark attacks have been recorded since 1950",
+       x=NULL,
+       y="Number of Incidents")
+```
 
+The top states are Florida, California, Hawaii, South Carolina, and North Carolina.  
 
 8. (3 points) Make a new object that limits the data to only include attacks attributed to Great White Sharks. This is trickier than it sounds, you should end up with 494 observations. Look online and adapt code involving `str_detect`. Which country has the highest number of Great White Shark attacks?
+```{r}
+whites <- global_sharks %>%
+  filter(str_detect(species, pattern = ("White")))
+```
 
+```{r}
+whites %>%
+  group_by(country) %>%
+  count(country) %>%
+  arrange(desc(n))
+```
+USA has the highest number of great white shark attacks. 
 
 9. (4 points) Use faceting to compare the number of fatal and non-fatal attacks for the top 5 countries with the highest number of Great White Shark attacks.
+```{r}
+whites %>%
+  filter(country=="USA" | country == "AUSTRALIA" | country == "SOUTH AFRICA" | country == "NEW ZEALAND" | country == "ITALY") %>%
+  filter(fatal_y_n == "Y" | fatal_y_n == "N") %>%
+  ggplot(aes(x=fatal_y_n))+
+  geom_bar(alpha=0.8)+
+  facet_wrap(~country)+
+  theme(axis.text.x = element_text(angle=50, hjust=1))+
+  labs(title="Number of Fatal and Non-Fatal Attacks for the Top 5 Countries with Great White Shark Attacks",
+       x= "Fatal or Non-Fatal",
+       y= "Number of Incidents")
+```
 
 
 10. (3 points) Using the `global_sharks` data, what is one question that you are interested in exploring? Write the question and answer it using a plot or table. 
+Florida has the highest number of incidents in the US. What top 5 locations of Florida are considered "hotspots"?
+```{r}
+florida <- global_sharks %>%
+  filter(area == "Florida") %>%
+  group_by(location) %>%
+  count(location) %>%
+  arrange(desc(n)) %>%
+  head(n=5)
+florida
+```
+```{r}
+florida %>%
+  ggplot(aes(x=location, y=n, fill=location))+
+  geom_col(alpha=0.8)+
+  theme(axis.text.x = element_text(angle=50, hjust=1))+
+  labs(title="Top 5 Florida Locations with Shark Attacks",
+       x="Location",
+       y="Number of Incidents")
+```
+
