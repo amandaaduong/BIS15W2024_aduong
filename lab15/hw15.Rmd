@@ -2,7 +2,9 @@
 title: "BIS15L_AI_hmwk"
 author: "Your Name"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document: 
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -23,25 +25,28 @@ library(janitor)
 library(dplyr)
 ```
 
+```{r}
+#install.packages("janitor")
+```
 
 1.
 ```{r}
-blood_count <- read_csv("data/blood_count.csv")
+blood_count <- read_csv("data/blood_count_dataset.csv") %>% clean_names() # clean column names
 ```
 
 2. 
 ```{r}
-glmpse(blood_count)
-
+glimpse(blood_count) # changed spelling of glimpse
+# view summary of data
 ```
 
 3. 
 ```{r}
 blood_count %>% 
-  group_by(gender) %>% 
-  summarize(min=min(red_blood_cells)
-            mean=maen(red_blood_cells),
-            max=max(red_blood_cells)
+  group_by(gender) %>% # get min, mean, and max of data by gender
+  summarize(min=min(red_blood_cells),
+            mean=mean(red_blood_cells), # changed spelling of mean
+            max=max(red_blood_cells))
 ```
 
 
@@ -50,44 +55,43 @@ blood_count %>%
 options(scipen = 999, digits = 2)
 
 blood_count %>% 
-  filter(Gender = "male") %>%
-  select[3:9] %>%
-  colMeans(na.rm = TRUE)
-
+  filter(gender == "Male") %>% # capitalized M in male
+  select(3:9) %>% # changed brackets
+  summarise_all(mean, na.rm = TRUE)
 ```
 
 5. 
 ```{r}
-bloood_count %>% 
-  filter(Gender = "Female") />%
-  select[3:9] %>%
-  colMeans(na.rm = T)
+options(scipen = 999, digits = 2)
+
+blood_count %>% 
+  filter(gender == "Female") %>% 
+  select(3:9) %>% # changed brackets
+  summarise_all(mean, na.rm = TRUE)
 ```
 
 
 6. 
 ```{r}
-
 blood_count %>%
-  pivot_wider(cols = [3:9], names_to = "Test", values_to = "Values") %>%
-  ggplot(aes(x = Gender, y = Values, fill = Gender)) +
+  pivot_longer(cols = 3:9, names_to = "Test", values_to = "Values") %>% # removed brackets
+  ggplot(aes(x = gender, y = Values, fill = gender)) + # lower case g for gender
   geom_boxplot() +
-  facet(~ Test, scales = "free") 
+  facet_wrap(~ Test, scales = "free")+ # added "wrap" to facet
   labs(title = "Boxplot of Blood Count Tests",
        x = "Test",
        y = "Values")
-
 ```
 
 7. 
 ```{r}
 grouped_bc <- blood_count %>%
-  change(Age_Group = case_when(
-    Age >= 20 & Age <= 29 ~ "20s",
-    Age >= 30 & Age <= 39 ~ "30s",
-    Age >= 40 & Age <= 49 ~ "40s",
-    Age >= 50 & Age <= 59 ~ "50s",
-    Age >= 60 & Age <= 70 ~ "60s")) # there were only 4 people in 70s, so I combined it with 60s
+  mutate(Age_Group = case_when( # fixed spelling of age and added mutate function
+    age >= 20 & age <= 29 ~ "20s",
+    age >= 30 & age <= 39 ~ "30s",
+    age >= 40 & age <= 49 ~ "40s",
+    age >= 50 & age <= 59 ~ "50s",
+    age >= 60 & age <= 70 ~ "60s")) # there were only 4 people in 70s, so I combined it with 60s
 
 head(grouped_bc)
 
@@ -95,20 +99,19 @@ head(grouped_bc)
 
 8. 
 ```{r}
-blood_count %>%
+grouped_bc %>% # changed blood_count to grouped_bc 
   pivot_longer(cols = 3:9, names_to = "Test", values_to = "Values") %>%
-  ggplot(ase(x = Age_Group, y = values, fill = Age_Group)) +
+  ggplot(aes(x = Age_Group, y = Values, fill = Age_Group)) +
   geom_boxplot() +
-  facet_wrap( Test, scales = "free") +  # Facet by the "Test" variable
+  facet_wrap(~ Test, scales = "free") +  # facet by the "Test" variable and added "~"
   labs(title = "Boxplot of Blood Count Tests by Age Group",
        x = "Age Group",
        y = "Values")
-
 ```
 9. What are two drawbacks and two benefits of AI?
-
+2 drawbacks include AI doesn't always know what you're asking it to do so it may take longer to try and write code that is meant for your analysis; another drawback is that AI could interpret your data incorrectly. 2 benefits include if AI knows what you intend to do, it can be much faster to code and AI can easily fix mistakes if your code is more "generic". 
 10. Do you think you will use AI for coding in the future? Why or why not?
-
+I think I will use AI to fix errors in my code such as syntax that I could easily miss. 
 
 ## Push your final code to GitHub!
 Please be sure that you check the `keep md` file in the knit preferences. 
